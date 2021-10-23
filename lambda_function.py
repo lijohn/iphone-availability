@@ -21,14 +21,15 @@ def lambda_handler(event, context):
                 storeUpdate = get_store_update(table, storeName)
                 if storeUpdate:
                     lastMessage = storeUpdate['last_message']
+                    count = storeUpdate['count']
                     if currentTime > lastMessage + 600:
                         availableStores.add(storeName)
-                        update_store(table, storeName, currentTime)
+                        update_store(table, storeName, currentTime, count + 1)
                     else:
-                        update_store(table, storeName, lastMessage)
+                        update_store(table, storeName, lastMessage, count + 1)
                 else:
                     availableStores.add(storeName)
-                    update_store(table, storeName, currentTime)
+                    update_store(table, storeName, currentTime, 1)
             evaluatedStores.add(storeName)
 
     if len(availableStores) > 0:
@@ -48,12 +49,13 @@ def get_store_update(table, store):
     item = table.get_item(Key={'key': store})
     return item.get('Item')
 
-def update_store(table, store, lastMessage):
+def update_store(table, store, lastMessage, count):
     table.put_item(
         Item={
             'key': store,
             'last_message': lastMessage,
-            'last_update': time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime())
+            'last_update': time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime()),
+            'count': count
         }
     )
 

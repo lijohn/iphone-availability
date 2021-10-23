@@ -1,0 +1,22 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: 'AWS::Serverless-2016-10-31'
+Description: Sends a text if iPhone is available at certain zip codes
+Resources:
+  iphoneavailability:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.9
+      CodeUri: .
+      Description: Sends a text if iPhone is available at certain zip codes
+      MemorySize: 128
+      Timeout: 10
+      Role: 'arn:aws:iam::233229421924:role/service-role/lambda-publish-SNS'
+      Events:
+        Schedule1:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 minute)
+      Environment:
+        Variables:
+          TZ: US/Eastern
