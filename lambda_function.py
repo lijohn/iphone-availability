@@ -6,11 +6,13 @@ import boto3
 def lambda_handler(event, context):
     url = 'https://www.apple.com/shop/fulfillment-messages?parts.0=MLTT3LL/A&location='
     zipCodes = ['19702', '22043', '07078']
-    evaluatedStores, availableStores = set(), set()
+    evaluatedStores = set()  # can be initialized here as a deny list
+    availableStores = set()
     message = 'iPhone not available'
     dynamodb = boto3.resource('dynamodb')
     table = dynamodb.Table('iphone-availability')
     currentTime = int(time.time())
+    cooldown = 900  # time between notifications from the same store
 
     for zipCode in zipCodes:
         response = requests.get(url + zipCode).json()
@@ -22,7 +24,7 @@ def lambda_handler(event, context):
                 if storeUpdate:
                     lastMessage = storeUpdate['last_message']
                     count = storeUpdate['count']
-                    if currentTime > lastMessage + 600:
+                    if currentTime > lastMessage + cooldown:
                         availableStores.add(storeName)
                         update_store(table, storeName, currentTime, count + 1)
                     else:
@@ -60,7 +62,7 @@ def update_store(table, store, lastMessage, count):
         }
     )
 
-def format_time(epochTime=time.time()):
+def format_time(epochTime=None):
     return time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(epochTime))
 
 def send_message(message):
