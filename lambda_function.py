@@ -54,10 +54,14 @@ def update_store(table, store, lastMessage, count):
         Item={
             'key': store,
             'last_message': lastMessage,
-            'last_update': time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime()),
+            'last_message_strft': format_time(lastMessage),
+            'last_update': format_time(),
             'count': count
         }
     )
+
+def format_time(epochTime=time.time()):
+    return time.strftime('%Y-%m-%d %H:%M:%S %Z', time.localtime(epochTime))
 
 def send_message(message):
     client = boto3.client('sns')
