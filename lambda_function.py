@@ -3,9 +3,12 @@ import requests
 import time
 import boto3
 
+part = 'MQ003LL/A'
+locations = ['Portland, OR']
+states = ['OR']
+
 def lambda_handler(event, context):
-    url = 'https://www.apple.com/shop/fulfillment-messages?parts.0=MLTT3LL/A&location='
-    zipCodes = ['19702', '22043', '07078']
+    url = 'https://www.apple.com/shop/fulfillment-messages?parts.0={}&location='.format(part)
     evaluatedStores = set()  # can be initialized here as a deny list
     availableStores = set()
     message = 'iPhone not available'
@@ -14,8 +17,8 @@ def lambda_handler(event, context):
     currentTime = int(time.time())
     cooldown = 900  # time between notifications from the same store
 
-    for zipCode in zipCodes:
-        response = requests.get(url + zipCode).json()
+    for location in locations:
+        response = requests.get(url + location).json()
         stores = response['body']['content']['pickupMessage']['stores']
         for store in stores:
             storeName = store['storeName']
@@ -44,8 +47,8 @@ def lambda_handler(event, context):
     }
 
 def is_available(store):
-    availability = store['partsAvailability']['MLTT3LL/A']
-    return availability['storeSelectionEnabled'] or availability['pickupDisplay'] == 'available'
+    availability = store['partsAvailability'][part]
+    return store['state'] in states and availability['pickupDisplay'] == 'available'
 
 def get_store_update(table, store):
     item = table.get_item(Key={'key': store})
