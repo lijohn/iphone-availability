@@ -98,6 +98,6 @@ def send_message(message, part):
             'model': {
                 'DataType': 'String',
                 'StringValue': part
-          }
+            }
         }
     )
